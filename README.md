@@ -6,5 +6,5 @@
 
 2. $ pip install stravalib
 
-3. $ pip install pyopenssl
+3. $ pip install xlsxwriter
 
