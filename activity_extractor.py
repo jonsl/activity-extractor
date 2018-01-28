@@ -37,18 +37,14 @@ club_activities=[]
 total_distance = 0
 for idx, club_activity in enumerate(client.get_club_activities(clubs[selected_club_idx].id)):
 	club_activities.append(club_activity)
-	print('{0}. {1} {2}:{3} start_date={4} type={5} distance={6} moving_time={7} average_speed={8} max_speed={9} total_elevation_gain={10}'.format(
-		idx, club_activity.athlete, club_activity.id, club_activity.name, club_activity.start_date, club_activity.type,
+	name_field = club_activity.athlete.lastname + ', ' + club_activity.athlete.firstname
+	print('{0}. {1}:{2} \'{3}\' start_date={4} type={5} distance={6} moving_time={7} average_speed={8} max_speed={9} total_elevation_gain={10}'.format(
+		idx, club_activity.id, club_activity.name, name_field, club_activity.start_date, club_activity.type,
 		club_activity.distance, club_activity.moving_time, club_activity.average_speed, club_activity.max_speed,
 		club_activity.total_elevation_gain))
 	total_distance += int(club_activity.distance)
 	if float(club_activity.distance) == 0.0:
 		print('distance is 0')
-#	if float(club_activity.moving_time) == 0.0:
-#		print('moving_time is 0')
 
-print('Total activities distance is {0}KM'.format(total_distance/1000.0))
-
-selected_activity_idx = int(input('\nPlease enter activity # > '))
-print('selected activity_id is {0}\n'.format(club_activities[selected_activity_idx].id))
+print('\nTotal activities distance is {0} km / {1} mi\n'.format(round(total_distance / 1000.0, 2), round((total_distance * 0.621371) / 1000.0, 2)))
 
