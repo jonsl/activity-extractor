@@ -13,7 +13,22 @@ ACCESS_TOKEN='6678266ba9422748554be8e5aaa46ea8dec5b39a'
 client = Client()
 url = client.authorization_url(client_id=CLIENT_ID,
         redirect_uri='http://localhost:8000/')
-print('\nurl={0}'.format(url))
+print('\nurl={0}\n'.format(url))
+
+
+tokens=[]
+tokens_file = 'tokens'
+try:
+	with open('tokens') as fp:  
+		for idx, line in enumerate(fp):
+			line = line.strip()
+			if line:
+				tokens.append(line)
+except IOError:
+	print('=> unable to open file: \'{0}\''.format(tokens_file))
+else:
+	fp.close()
+	print("=> read {0} access tokens".format(idx))
 
 client = Client(access_token=ACCESS_TOKEN)
 
@@ -71,12 +86,14 @@ row += 1
 club_activities=[]
 total_distance = 0
 for idx, club_activity in enumerate(client.get_club_activities(clubs[selected_club_idx].id)):
+	print('{0}'.format(club_activity))
 	club_activities.append(club_activity)
 	name_field = club_activity.athlete.lastname + ', ' + club_activity.athlete.firstname
 	worksheet.write(row, col, club_activity.id)
 	worksheet.write(row, col+1, club_activity.name)
 	worksheet.write(row, col+2, name_field)
-	worksheet.write_datetime(row, col+3, club_activity.start_date.replace(tzinfo=None))
+	if club_activity.start_date is not None:
+		worksheet.write_datetime(row, col+3, club_activity.start_date.replace(tzinfo=None))
 	worksheet.write(row, col+4, club_activity.type)
 	worksheet.write(row, col+5, club_activity.distance)
 	worksheet.write(row, col+6, club_activity.moving_time.total_seconds())
