@@ -5,50 +5,84 @@ import time
 
 from stravalib.client import Client
 
-CLIENT_ID=22927
+from units import unit
 
-ACCESS_TOKEN='6678266ba9422748554be8e5aaa46ea8dec5b39a'
+def read_access_tokens(tokens_file):
+	tokens=[]
+	try:
+		with open('tokens') as fp:  
+			for idx, line in enumerate(fp):
+				line = line.strip()
+				if line:
+					tokens.append(line)
+	except IOError:
+		print('=> unable to open file: \'{0}\''.format(tokens_file))
+	else:
+		fp.close()
+		print("=> read {0} access tokens".format(idx))
+		return tokens
+
+def process_access_token(worksheet, access_token) :
+
+	global row, col
+
+	client = Client(access_token=access_token)
+	athlete = client.get_athlete()
+	activities=[]
+	total_distance = 0
+	for activity in client.get_activities():
+		#print('{0}'.format(activity))
+		format2 = workbook.add_format({'num_format': 'dd/mm/yy'})
+		worksheet.write(row, col, activity.id)
+		worksheet.write(row, col+1, athlete.lastname + ', ' + athlete.firstname)
+		worksheet.write(row, col+2, activity.name)
+		worksheet.write(row, col+3, activity.achievement_count)
+		worksheet.write(row, col+4, activity.start_date.replace(tzinfo=None))
+		worksheet.write(row, col+5, activity.type)
+		worksheet.write(row, col+6, activity.distance)
+		worksheet.write(row, col+7, activity.moving_time.total_seconds())
+		worksheet.write(row, col+8, activity.average_speed)
+		worksheet.write(row, col+9, activity.max_speed)
+		worksheet.write(row, col+10, activity.total_elevation_gain)
+		worksheet.write(row, col+11, activity.distance)
+		worksheet.write(row, col+12, activity.distance)
+		row += 1
+		col = 0
+		total_distance += int(activity.distance)
+
+	return total_distance
+
+
+#CLIENT_ID=22927
+
+#ACCESS_TOKEN=('6678266ba9422748554be8e5aaa46ea8dec5b39a')
 
 # auth
-client = Client()
-url = client.authorization_url(client_id=CLIENT_ID,
-        redirect_uri='http://localhost:8000/')
-print('\nurl={0}\n'.format(url))
+#client = Client()
+#url = client.authorization_url(client_id=CLIENT_ID,
+#        redirect_uri='http://localhost:8000/')
+#print('\nurl={0}\n'.format(url))
 
 
-tokens=[]
-tokens_file = 'tokens'
-try:
-	with open('tokens') as fp:  
-		for idx, line in enumerate(fp):
-			line = line.strip()
-			if line:
-				tokens.append(line)
-except IOError:
-	print('=> unable to open file: \'{0}\''.format(tokens_file))
-else:
-	fp.close()
-	print("=> read {0} access tokens".format(idx))
+tokens = []
+tokens = read_access_tokens('tokens')
 
-client = Client(access_token=ACCESS_TOKEN)
+#client = Client(access_token=ACCESS_TOKEN)
 
 # Now store that access token somewhere (a database?)
-client.access_token = ACCESS_TOKEN;
+#client.access_token = ACCESS_TOKEN
 
-athlete = client.get_athlete()
-print("\n=> for athlete {id}, I now have an access token {token}\n".format(
-	id=athlete.id, token=client.access_token))
+# get Athletes to work with
+#Athlete=client.get_athlete()
+#print("{0}".format(Athlete))
 
-# get club to work with
-clubs=[]
-for idx, club in enumerate(client.get_athlete_clubs()):
-	clubs.append(club)
-	print("{0}. {1} {2}".format(idx, club.id, club.name.encode()))
 
-selected_club_idx = int(input('\nPlease enter club # > '))
-
+# get athletes to work with
+#Activity=client.get_activities()
+#for activity in client.get_activities():
+#	print("{0.id} {0.name}  {0.start_date} {0.moving_time}  {0.distance}  {0.total_elevation_gain}  {0.achievement_count}".format(activity))
 now = datetime.datetime.now()
-filename = now.strftime('%Y-%m-%d_club_data.xlsx');
+filename = now.strftime('%Y-%m-%d_athlete_data.xlsx');
 
 workbook = xlsxwriter.Workbook(filename, {'default_date_format':'dd/mm/yy'})
 worksheet = workbook.add_worksheet()
@@ -60,7 +94,7 @@ col=0
 
 worksheet.write(row, col, 'ID', bold)
 worksheet.write(row, col+1, 'Name', bold)
-worksheet.write(row, col+2, 'Athlete', bold)
+worksheet.write(row, col+2, 'Achievement count', bold)
 worksheet.write(row, col+3, 'Date', bold)
 worksheet.write(row, col+4, 'Type', bold)
 worksheet.write(row, col+5, 'Distance (m)', bold)
@@ -83,33 +117,19 @@ worksheet.set_column('J:J', 19)
 row += 1
 
 # get activities for the club
-club_activities=[]
+activities=[]
 total_distance = 0
-for idx, club_activity in enumerate(client.get_club_activities(clubs[selected_club_idx].id)):
-	print('{0}'.format(club_activity))
-	club_activities.append(club_activity)
-	name_field = club_activity.athlete.lastname + ', ' + club_activity.athlete.firstname
-	worksheet.write(row, col, club_activity.id)
-	worksheet.write(row, col+1, club_activity.name)
-	worksheet.write(row, col+2, name_field)
-	if club_activity.start_date is not None:
-		worksheet.write_datetime(row, col+3, club_activity.start_date.replace(tzinfo=None))
-	worksheet.write(row, col+4, club_activity.type)
-	worksheet.write(row, col+5, club_activity.distance)
-	worksheet.write(row, col+6, club_activity.moving_time.total_seconds())
-	worksheet.write(row, col+7, club_activity.average_speed)
-	worksheet.write(row, col+8, club_activity.max_speed)
-	worksheet.write(row, col+9, club_activity.total_elevation_gain)
-	row += 1
-	col = 0
-	total_distance += int(club_activity.distance)
+
+
+for idx, token in enumerate(tokens):
+	total_dist = process_access_token(worksheet, token)
+	total_distance += total_dist
+	print('total distance = {0}'.format(total_dist))
+
+print('total total total distance = {0}'.format(total_distance))
 
 workbook.close()
 
 print('\nwrote \'{0}\''.format(filename))
 
-print('\nprocessed %s activities' % idx)
-
-print('\nTotal activities distance is {0} km / {1} mi\n'.format(
-	round(total_distance / 1000.0, 2), round((total_distance * 0.621371) / 1000.0, 2)))
 
