@@ -52,35 +52,11 @@ def process_access_token(worksheet, access_token) :
 
 	return total_distance
 
-
-#CLIENT_ID=22927
-
-#ACCESS_TOKEN=('6678266ba9422748554be8e5aaa46ea8dec5b39a')
-
-# auth
-#client = Client()
-#url = client.authorization_url(client_id=CLIENT_ID,
-#        redirect_uri='http://localhost:8000/')
-#print('\nurl={0}\n'.format(url))
-
-
+# read all access tokens
 tokens = []
 tokens = read_access_tokens('tokens')
 
-#client = Client(access_token=ACCESS_TOKEN)
-
-# Now store that access token somewhere (a database?)
-#client.access_token = ACCESS_TOKEN
-
-# get Athletes to work with
-#Athlete=client.get_athlete()
-#print("{0}".format(Athlete))
-
-
-# get athletes to work with
-#Activity=client.get_activities()
-#for activity in client.get_activities():
-#	print("{0.id} {0.name}  {0.start_date} {0.moving_time}  {0.distance}  {0.total_elevation_gain}  {0.achievement_count}".format(activity))
+# xlsx file is timestamped now
 now = datetime.datetime.now()
 filename = now.strftime('%Y-%m-%d_athlete_data.xlsx');
 
