@@ -28,11 +28,9 @@ def process_access_token(worksheet, access_token) :
 
 	client = Client(access_token=access_token)
 	athlete = client.get_athlete()
-	activities=[]
 	total_distance = 0
 	for activity in client.get_activities():
-		#print('{0}'.format(activity))
-		format2 = workbook.add_format({'num_format': 'dd/mm/yy'})
+		workbook.add_format({'num_format': 'dd/mm/yy'})
 		worksheet.write(row, col, activity.id)
 		worksheet.write(row, col+1, athlete.lastname + ', ' + athlete.firstname)
 		worksheet.write(row, col+2, activity.name)
@@ -58,7 +56,7 @@ tokens = read_access_tokens('tokens')
 
 # xlsx file is timestamped now
 now = datetime.datetime.now()
-filename = now.strftime('%Y-%m-%d_athlete_data.xlsx');
+filename = now.strftime('%Y-%m-%d_athlete_data.xlsx')
 
 workbook = xlsxwriter.Workbook(filename, {'default_date_format':'dd/mm/yy'})
 worksheet = workbook.add_worksheet()
@@ -107,5 +105,3 @@ print('total total total distance = {0}'.format(total_distance))
 workbook.close()
 
 print('\nwrote \'{0}\''.format(filename))
-
-
