@@ -27,42 +27,6 @@ print(
     )
 )
 
-# xlsx file is timestamped now
-now = datetime.datetime.now()
-filename = now.strftime('%Y-%m-%d_athlete_data.xlsx')
-
-workbook = xlsxwriter.Workbook(filename, {'default_date_format':'dd/mm/yy'})
-worksheet = workbook.add_worksheet()
-
-bold = workbook.add_format({'bold': True})
-
-row=0
-col=0
-
-worksheet.write(row, col, 'ID', bold)
-worksheet.write(row, col+1, 'Name', bold)
-worksheet.write(row, col+2, 'Achievement count', bold)
-worksheet.write(row, col+3, 'Date', bold)
-worksheet.write(row, col+4, 'Type', bold)
-worksheet.write(row, col+5, 'Distance (m)', bold)
-worksheet.write(row, col+6, 'Moving Time (s)', bold)
-worksheet.write(row, col+7, 'Average Speed (m/s)', bold)
-worksheet.write(row, col+8, 'Max Speed (m/s)', bold)
-worksheet.write(row, col+9, 'Total Elevation Gain (m)', bold)
-
-worksheet.set_column('A:A', 10)
-worksheet.set_column('B:B', 26)
-worksheet.set_column('C:C', 10)
-worksheet.set_column('D:D', 9)
-worksheet.set_column('E:E', 8)
-worksheet.set_column('F:F', 12)
-worksheet.set_column('G:G', 13)
-worksheet.set_column('H:H', 17)
-worksheet.set_column('I:I', 14)
-worksheet.set_column('J:J', 19)
-
-row += 1
-
 # get club to process
 club_list = []
 for idx, club in enumerate(client.get_athlete_clubs()):
@@ -80,7 +44,59 @@ cursor.show()
 
 club_index = int(input("\nPlease choose a club: ")) - 1
 
+selected_club = club_list[club_index]
 
+# xlsx file is timestamped now
+now = datetime.datetime.now()
+filename = now.strftime(
+    '%Y-%m-%d_{club_name}.xlsx'.format(
+        club_name=selected_club.name.replace(' ', '_'),
+    )
+)
+
+workbook = xlsxwriter.Workbook(filename, {'default_date_format':'dd/mm/yy'})
+worksheet = workbook.add_worksheet()
+
+bold = workbook.add_format({'bold': True})
+
+row = col = 0
+
+worksheet.write(row, col, 'Name', bold)
+worksheet.write(row, col+1, 'Activity Name', bold)
+worksheet.write(row, col+2, 'Distance', bold)
+worksheet.write(row, col+3, 'Moving Time', bold)
+worksheet.write(row, col+4, 'Elapsed Time', bold)
+worksheet.write(row, col+5, 'Total Elevation Gain', bold)
+worksheet.write(row, col+6, 'Activity Type', bold)
+worksheet.write(row, col+7, 'Workout Type', bold)
+
+worksheet.set_column('A:A', 14)
+worksheet.set_column('B:B', 30)
+worksheet.set_column('C:C', 10)
+worksheet.set_column('D:D', 14)
+worksheet.set_column('E:E', 14)
+worksheet.set_column('F:F', 22)
+worksheet.set_column('G:G', 14)
+worksheet.set_column('H:H', 14)
+
+row += 1
+
+total_distance = 0
+
+for idx, activity in enumerate(client.get_club_activities(selected_club.id)):
+    worksheet.write(row, col, activity.athlete.lastname + ', ' + activity.athlete.firstname)
+    worksheet.write(row, col+1, activity.name)
+    worksheet.write(row, col+2, activity.distance)
+    worksheet.write(row, col+3, activity.moving_time)
+    worksheet.write(row, col+4, activity.elapsed_time)
+    worksheet.write(row, col+5, activity.total_elevation_gain)
+    worksheet.write(row, col+6, activity.type)
+    worksheet.write(row, col+7, activity.workout_type)
+    row += 1
+    col = 0
+    total_distance += int(activity.distance)
+
+print('total_distance is {total_distance}'.format(total_distance=total_distance))  # noqa
 
 workbook.close()
 
