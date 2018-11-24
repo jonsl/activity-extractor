@@ -1,5 +1,3 @@
-
-
 import sys
 import xlsxwriter
 import datetime
@@ -25,7 +23,6 @@ def read_access_tokens(tokens_file):
 		return tokens
 
 def process_access_token(worksheet, access_token) :
-
 	global row, col
 
 	client = Client(access_token=access_token)
@@ -104,14 +101,12 @@ row += 1
 activities=[]
 total_distance = 0
 
-
 for idx, token in enumerate(tokens):
 	total_dist = process_access_token(worksheet, token)
 	total_distance += total_dist
 	print('total distance = {0}'.format(total_dist))
 
 print('total total total distance = {0}'.format(total_distance))
-
 workbook.close()
 
 print('\nwrote \'{0}\''.format(filename))
