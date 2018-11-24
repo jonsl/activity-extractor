@@ -2,10 +2,16 @@ import datetime
 import sys
 import time
 
+import cursor
 import xlsxwriter
 from stravalib.client import Client
 from units import unit
 
+
+def spinning_cursor():
+    while True:  # around forever
+        for cursor in '|/-\\':
+            yield cursor
 
 def read_access_tokens(tokens_file):
 	tokens=[]
@@ -28,15 +34,18 @@ def process_access_token(worksheet, access_token) :
 	client = Client(access_token=access_token)
 	athlete = client.get_athlete()
 	print(
-		'processing athlete: {lastname}, {firstname}'.format(
+		'processing athlete "{lastname}, {firstname}"...'.format(
 			lastname=athlete.lastname,
 			firstname=athlete.firstname,
 		)
 	)
-	sys.stdout.flush()
 
 	total_distance = 0
 	for activity in client.get_activities():
+		if row % 20 == 0:
+			sys.stdout.write('{}\r'.format(next(spinner)))
+			sys.stdout.flush()
+			time.sleep(0.1)
 		workbook.add_format({'num_format': 'dd/mm/yy'})
 		worksheet.write(row, col, activity.id)
 		worksheet.write(row, col+1, athlete.lastname + ', ' + athlete.firstname)
@@ -56,6 +65,8 @@ def process_access_token(worksheet, access_token) :
 		total_distance += int(activity.distance)
 
 	return total_distance
+
+spinner = spinning_cursor()
 
 # read all access tokens
 tokens = []
@@ -101,6 +112,8 @@ row += 1
 activities=[]
 total_distance = 0
 
+cursor.hide()
+
 for idx, token in enumerate(tokens):
 	total_dist = process_access_token(worksheet, token)
 	total_distance += total_dist
@@ -110,3 +123,5 @@ print('total total total distance = {0}'.format(total_distance))
 workbook.close()
 
 print('\nwrote \'{0}\''.format(filename))
+
+cursor.show()
