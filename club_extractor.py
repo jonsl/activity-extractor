@@ -63,12 +63,7 @@ worksheet.set_column('J:J', 19)
 
 row += 1
 
-# get activities for the club
-activities=[]
-total_distance = 0
-
-cursor.hide()
-
+# get club to process
 club_list = []
 for idx, club in enumerate(client.get_athlete_clubs()):
     print(
@@ -81,6 +76,8 @@ for idx, club in enumerate(client.get_athlete_clubs()):
     )
     club_list.append(club)
 
+cursor.show()
+
 club_index = int(input("\nPlease choose a club: ")) - 1
 
 
@@ -88,5 +85,3 @@ club_index = int(input("\nPlease choose a club: ")) - 1
 workbook.close()
 
 print('\nwrote \'{0}\''.format(filename))
-
-cursor.show()
