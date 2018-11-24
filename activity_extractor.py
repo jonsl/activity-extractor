@@ -1,4 +1,6 @@
 
+
+import sys
 import xlsxwriter
 import datetime
 import time
@@ -28,6 +30,14 @@ def process_access_token(worksheet, access_token) :
 
 	client = Client(access_token=access_token)
 	athlete = client.get_athlete()
+	print(
+		'processing athlete: {lastname}, {firstname}'.format(
+			lastname=athlete.lastname,
+			firstname=athlete.firstname,
+		)
+	)
+	sys.stdout.flush()
+
 	total_distance = 0
 	for activity in client.get_activities():
 		workbook.add_format({'num_format': 'dd/mm/yy'})
