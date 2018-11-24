@@ -2,6 +2,7 @@
 import xlsxwriter
 import datetime
 import time
+import sys
 
 from stravalib.client import Client
 
@@ -23,11 +24,16 @@ def read_access_tokens(tokens_file):
 		return tokens
 
 def process_access_token(worksheet, access_token) :
-
 	global row, col
-
 	client = Client(access_token=access_token)
 	athlete = client.get_athlete()
+	print(
+		'processing athlete: {lastname}, {firstname}'.format(
+			lastname=athlete.lastname,
+			firstname=athlete.firstname,
+		)
+	)
+	sys.stdout.flush()
 	total_distance = 0
 	for activity in client.get_activities():
 		workbook.add_format({'num_format': 'dd/mm/yy'})
@@ -47,7 +53,6 @@ def process_access_token(worksheet, access_token) :
 		row += 1
 		col = 0
 		total_distance += int(activity.distance)
-
 	return total_distance
 
 # read all access tokens
@@ -94,6 +99,7 @@ row += 1
 activities=[]
 total_distance = 0
 
+sys.stdout.flush()
 
 for idx, token in enumerate(tokens):
 	total_dist = process_access_token(worksheet, token)
