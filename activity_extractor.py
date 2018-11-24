@@ -1,11 +1,11 @@
-import sys
-import xlsxwriter
 import datetime
+import sys
 import time
 
+import xlsxwriter
 from stravalib.client import Client
-
 from units import unit
+
 
 def read_access_tokens(tokens_file):
 	tokens=[]
