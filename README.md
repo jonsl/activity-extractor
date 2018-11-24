@@ -1,10 +1,7 @@
 # activity-extractor
 
-## prerequisites
+## requirements
 
-1. download and install python >= 3.6.4 from https://www.python.org/downloads/
-
-2. $ pip install stravalib
-
-3. $ pip install xlsxwriter
-
+```bash
+pip3 install -r requirements.txt
+```
