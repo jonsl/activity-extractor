@@ -1,6 +1,5 @@
 tokens
-venv3/
-*.xlsx*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -11,7 +10,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -87,7 +85,7 @@ celerybeat-schedule
 
 # virtualenv
 .venv
-venv/
+venv*/
 ENV/
 
 # Spyder project settings
@@ -103,5 +101,4 @@ ENV/
 # mypy
 .mypy_cache/
 
-*.xlsx
-
+*.xlsx*
