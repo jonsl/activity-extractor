@@ -1,19 +1,26 @@
 import datetime
 import sys
 import time
-
+from datetime import timedelta
+from stravalib import unithelper
 import cursor
 import xlsxwriter
 from stravalib.client import Client
 from units import unit
 
 
-def spinning_cursor():
+def _athlete_key(firstname: str, lastname: str) -> str:
+    return '{lastname}, {firstname}'.format(
+        lastname=lastname,
+        firstname=firstname,
+    )
+
+def _spinning_cursor():
     while True:  # around forever
         for cursor in '|/-\\':
             yield cursor
 
-spinner = spinning_cursor()
+spinner = _spinning_cursor()
 
 # read all access tokens
 ACCESS_TOKEN = '6678266ba9422748554be8e5aaa46ea8dec5b39a'
@@ -46,6 +53,28 @@ club_index = int(input("\nPlease choose a club: ")) - 1
 
 selected_club = club_list[club_index]
 
+athlete_map = {}
+
+# pull all data into a map of activity lists keyed by athlete name
+for idx, activity in enumerate(client.get_club_activities(selected_club.id)):
+    key = _athlete_key(
+        activity.athlete.firstname,
+        activity.athlete.lastname,
+    )
+    athlete_map.setdefault(key, [])
+
+    activity = {
+        'name': activity.name,
+        'distance': activity.distance,
+        'moving_time': activity.moving_time,
+        'elapsed_time': activity.elapsed_time,
+        'total_elevation_gain': activity.total_elevation_gain,
+        'type': activity.type,
+        'workout_type': activity.workout_type,
+    }
+
+    athlete_map[key].append(activity)
+
 # xlsx file is timestamped now
 now = datetime.datetime.now()
 filename = now.strftime(
@@ -62,41 +91,56 @@ bold = workbook.add_format({'bold': True})
 row = col = 0
 
 worksheet.write(row, col, 'Name', bold)
-worksheet.write(row, col+1, 'Activity Name', bold)
-worksheet.write(row, col+2, 'Distance', bold)
-worksheet.write(row, col+3, 'Moving Time', bold)
-worksheet.write(row, col+4, 'Elapsed Time', bold)
-worksheet.write(row, col+5, 'Total Elevation Gain', bold)
-worksheet.write(row, col+6, 'Activity Type', bold)
-worksheet.write(row, col+7, 'Workout Type', bold)
+worksheet.write(row, col+1, 'Distance (km)', bold)
+worksheet.write(row, col+2, 'Moving Time (s)', bold)
+worksheet.write(row, col+3, 'Elapsed Time (s)', bold)
+worksheet.write(row, col+4, 'Total Elevation Gain (m)', bold)
+worksheet.write(row, col+5, 'Activity Count', bold)
 
 worksheet.set_column('A:A', 14)
-worksheet.set_column('B:B', 30)
-worksheet.set_column('C:C', 10)
-worksheet.set_column('D:D', 14)
-worksheet.set_column('E:E', 14)
-worksheet.set_column('F:F', 22)
-worksheet.set_column('G:G', 14)
-worksheet.set_column('H:H', 14)
+worksheet.set_column('B:B', 20)
+worksheet.set_column('C:C', 20)
+worksheet.set_column('D:D', 20)
+worksheet.set_column('E:E', 24)
+worksheet.set_column('F:F', 14)
 
 row += 1
 
-total_distance = 0
+total_distance_kilometers = 0
 
-for idx, activity in enumerate(client.get_club_activities(selected_club.id)):
-    worksheet.write(row, col, activity.athlete.lastname + ', ' + activity.athlete.firstname)
-    worksheet.write(row, col+1, activity.name)
-    worksheet.write(row, col+2, activity.distance)
-    worksheet.write(row, col+3, activity.moving_time)
-    worksheet.write(row, col+4, activity.elapsed_time)
-    worksheet.write(row, col+5, activity.total_elevation_gain)
-    worksheet.write(row, col+6, activity.type)
-    worksheet.write(row, col+7, activity.workout_type)
+for key in athlete_map:
+
+    athlete_distance_kilometers = 0
+    athlete_moving_time_seconds = 0
+    athlete_elapsed_time_seconds = 0
+    athlete_total_elevation_gain_meters = 0
+
+    for idx, activity in enumerate(athlete_map[key]):
+        distance_kilometers = unithelper.kilometers(activity['distance'])
+        athlete_distance_kilometers += float(distance_kilometers)
+        moving_time = activity['moving_time']
+        athlete_moving_time_seconds += moving_time.seconds
+        elapsed_time = activity['elapsed_time']
+        athlete_elapsed_time_seconds += elapsed_time.seconds
+        total_elevation_gain_meters = unithelper.meters(activity['total_elevation_gain'])
+        athlete_total_elevation_gain_meters += float(total_elevation_gain_meters)
+
+    worksheet.write(row, col, key)
+    worksheet.write(row, col+1, athlete_distance_kilometers)
+    worksheet.write(row, col+2, athlete_moving_time_seconds)
+    worksheet.write(row, col+3, athlete_elapsed_time_seconds)
+    worksheet.write(row, col+4, athlete_total_elevation_gain_meters)
+    worksheet.write(row, col+5, idx + 1)
+
     row += 1
     col = 0
-    total_distance += int(activity.distance)
+    total_distance_kilometers += athlete_distance_kilometers
 
-print('total_distance is {total_distance}'.format(total_distance=total_distance))  # noqa
+print(
+    'total_distance_kilometers is {total_distance_kilometers}'.format(
+        total_distance_kilometers=total_distance_kilometers
+    )
+)
 
 workbook.close()
 
