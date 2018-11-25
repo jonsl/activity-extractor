@@ -2,25 +2,47 @@ import datetime
 import sys
 import time
 from datetime import timedelta
-from stravalib import unithelper
+
 import cursor
 import xlsxwriter
+from stravalib import unithelper
 from stravalib.client import Client
 from units import unit
 
+import util
 
-def _athlete_key(firstname: str, lastname: str) -> str:
-    return '{lastname}, {firstname}'.format(
-        lastname=lastname,
-        firstname=firstname,
+
+def _create_athlete_map() -> str:
+    athlete_map = {}
+    # pull all data into a map of activity lists keyed by athlete name
+    for idx, activity in enumerate(client.get_club_activities(selected_club.id)):
+        key = util.athlete_fullname(
+            activity.athlete.firstname,
+            activity.athlete.lastname,
+        )
+        activity = {
+            'name': activity.name,
+            'distance': activity.distance,
+            'moving_time': activity.moving_time,
+            'elapsed_time': activity.elapsed_time,
+            'total_elevation_gain': activity.total_elevation_gain,
+            'type': activity.type,
+            'workout_type': activity.workout_type,
+        }
+        athlete_map.setdefault(key, []).append(
+            activity,
+        )
+
+    print(
+        '\nProcessed {idx} activities for {athlete_count} athletes'.format(
+            idx=idx + 1,
+            athlete_count=len(athlete_map),
+        )
     )
+    return athlete_map
 
-def _spinning_cursor():
-    while True:  # around forever
-        for cursor in '|/-\\':
-            yield cursor
 
-spinner = _spinning_cursor()
+spinner = util.spinning_cursor()
 
 # read all access tokens
 ACCESS_TOKEN = '6678266ba9422748554be8e5aaa46ea8dec5b39a'
@@ -28,9 +50,11 @@ ACCESS_TOKEN = '6678266ba9422748554be8e5aaa46ea8dec5b39a'
 client = Client(access_token=ACCESS_TOKEN)
 athlete = client.get_athlete()
 print(
-    '\nProcessing Clubs for athlete: "{lastname}, {firstname}"\n'.format(
-        lastname=athlete.lastname,
-        firstname=athlete.firstname,
+    '\n=> Processing clubs for athlete: "{key}"\n'.format(
+        key=util.athlete_fullname(
+            athlete.firstname,
+            athlete.lastname,
+        )
     )
 )
 
@@ -53,27 +77,7 @@ club_index = int(input("\nPlease choose a club: ")) - 1
 
 selected_club = club_list[club_index]
 
-athlete_map = {}
-
-# pull all data into a map of activity lists keyed by athlete name
-for idx, activity in enumerate(client.get_club_activities(selected_club.id)):
-    key = _athlete_key(
-        activity.athlete.firstname,
-        activity.athlete.lastname,
-    )
-    athlete_map.setdefault(key, [])
-
-    activity = {
-        'name': activity.name,
-        'distance': activity.distance,
-        'moving_time': activity.moving_time,
-        'elapsed_time': activity.elapsed_time,
-        'total_elevation_gain': activity.total_elevation_gain,
-        'type': activity.type,
-        'workout_type': activity.workout_type,
-    }
-
-    athlete_map[key].append(activity)
+athlete_map = _create_athlete_map()
 
 # xlsx file is timestamped now
 now = datetime.datetime.now()
@@ -101,12 +105,12 @@ worksheet.set_column('A:A', 14)
 worksheet.set_column('B:B', 20)
 worksheet.set_column('C:C', 20)
 worksheet.set_column('D:D', 20)
-worksheet.set_column('E:E', 24)
-worksheet.set_column('F:F', 14)
+worksheet.set_column('E:E', 28)
+worksheet.set_column('F:F', 18)
 
 row += 1
 
-total_distance_kilometers = 0
+total_distance_kilometers = float(0)
 
 for key in athlete_map:
 
@@ -126,7 +130,7 @@ for key in athlete_map:
         athlete_total_elevation_gain_meters += float(total_elevation_gain_meters)
 
     worksheet.write(row, col, key)
-    worksheet.write(row, col+1, athlete_distance_kilometers)
+    worksheet.write(row, col+1, round(athlete_distance_kilometers, util.DEFAULT_DECIMAL_PLACES))
     worksheet.write(row, col+2, athlete_moving_time_seconds)
     worksheet.write(row, col+3, athlete_elapsed_time_seconds)
     worksheet.write(row, col+4, athlete_total_elevation_gain_meters)
@@ -137,11 +141,14 @@ for key in athlete_map:
     total_distance_kilometers += athlete_distance_kilometers
 
 print(
-    'total_distance_kilometers is {total_distance_kilometers}'.format(
-        total_distance_kilometers=total_distance_kilometers
+    '=> Total distance is {total_distance_kilometers} km'.format(
+        total_distance_kilometers=round(total_distance_kilometers, util.DEFAULT_DECIMAL_PLACES),
     )
 )
 
 workbook.close()
-
-print('\nwrote \'{0}\''.format(filename))
+print(
+	'\n=> Wrote "{filename}"\n'.format(
+		filename=filename,
+	)
+)
