@@ -99,7 +99,7 @@ worksheet.write(row, col+1, 'Distance (km)', bold)
 worksheet.write(row, col+2, 'Moving Time (s)', bold)
 worksheet.write(row, col+3, 'Elapsed Time (s)', bold)
 worksheet.write(row, col+4, 'Total Elevation Gain (m)', bold)
-worksheet.write(row, col+5, 'Activity Count', bold)
+worksheet.write(row, col+5, 'Activity Type', bold)
 
 worksheet.set_column('A:A', 14)
 worksheet.set_column('B:B', 20)
@@ -129,15 +129,25 @@ for key in athlete_map:
         total_elevation_gain_meters = unithelper.meters(activity['total_elevation_gain'])
         athlete_total_elevation_gain_meters += float(total_elevation_gain_meters)
 
-    worksheet.write(row, col, key)
-    worksheet.write(row, col+1, round(athlete_distance_kilometers, util.DEFAULT_DECIMAL_PLACES))
-    worksheet.write(row, col+2, athlete_moving_time_seconds)
-    worksheet.write(row, col+3, athlete_elapsed_time_seconds)
-    worksheet.write(row, col+4, athlete_total_elevation_gain_meters)
-    worksheet.write(row, col+5, idx + 1)
+        worksheet.write(row, col, key)
+        worksheet.write(row, col+1, round(float(distance_kilometers), util.DEFAULT_DECIMAL_PLACES))
+        worksheet.write(row, col+2, moving_time.seconds)
+        worksheet.write(row, col+3, elapsed_time.seconds)
+        worksheet.write(row, col+4, float(total_elevation_gain_meters))
+        worksheet.write(row, col+5, activity['type'])
 
-    row += 1
-    col = 0
+        row += 1
+        col = 0
+
+#    worksheet.write(row, col, key)
+#    worksheet.write(row, col+1, round(athlete_distance_kilometers, util.DEFAULT_DECIMAL_PLACES))
+#    worksheet.write(row, col+2, athlete_moving_time_seconds)
+#    worksheet.write(row, col+3, athlete_elapsed_time_seconds)
+#    worksheet.write(row, col+4, athlete_total_elevation_gain_meters)
+#    worksheet.write(row, col+5, idx + 1)
+		
+#    row += 1
+#    col = 0
     total_distance_kilometers += athlete_distance_kilometers
 
 print(

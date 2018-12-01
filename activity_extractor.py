@@ -56,7 +56,7 @@ def _process_athlete(worksheet, access_token) -> float:
 		worksheet.write(row, col+2, activity.name)
 		worksheet.write(row, col+3, activity.achievement_count)
 		worksheet.write(row, col+4, activity.start_date.replace(tzinfo=None))
-		worksheet.write(row, col+5, activity.type.upper())
+		worksheet.write(row, col+5, activity.type)
 		activity_distance_kilometers = float(unithelper.kilometers(activity.distance))
 		worksheet.write(row, col+6, round(activity_distance_kilometers, util.DEFAULT_DECIMAL_PLACES))
 		worksheet.write(row, col+7, activity.moving_time.seconds)
