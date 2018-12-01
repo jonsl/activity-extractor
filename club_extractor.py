@@ -98,15 +98,6 @@ def create_club_workbook(filename: str, athlete_map: dict):
             row += 1
             col = 0
 
-    #    worksheet.write(row, col, key)
-    #    worksheet.write(row, col+1, round(athlete_distance_kilometers, util.DEFAULT_DECIMAL_PLACES))
-    #    worksheet.write(row, col+2, athlete_moving_time_seconds)
-    #    worksheet.write(row, col+3, athlete_elapsed_time_seconds)
-    #    worksheet.write(row, col+4, athlete_total_elevation_gain_meters)
-    #    worksheet.write(row, col+5, idx + 1)
-            
-    #    row += 1
-    #    col = 0
         total_distance_kilometers += athlete_distance_kilometers
 
     print(
