@@ -1,6 +1,4 @@
-
 DEFAULT_DECIMAL_PLACES = 2
-
 
 def spinning_cursor():
     while True:  # around forever
