@@ -1,11 +1,7 @@
 import datetime
 import sys
 import time
-<<<<<<< HEAD
-import sys
-=======
 from datetime import timedelta
->>>>>>> 3af4b88659dcb243195959ff90a835b4816270dd
 
 import cursor
 import xlsxwriter
