@@ -1,14 +1,22 @@
-
-import xlsxwriter
 import datetime
-import time
 import sys
+import time
+<<<<<<< HEAD
+import sys
+=======
+from datetime import timedelta
+>>>>>>> 3af4b88659dcb243195959ff90a835b4816270dd
 
+import cursor
+import xlsxwriter
+from stravalib import unithelper
 from stravalib.client import Client
-
 from units import unit
 
-def read_access_tokens(tokens_file):
+import util
+
+
+def _read_access_tokens(tokens_file):
 	tokens=[]
 	try:
 		with open('tokens') as fp:  
@@ -17,47 +25,68 @@ def read_access_tokens(tokens_file):
 				if line:
 					tokens.append(line)
 	except IOError:
-		print('=> unable to open file: \'{0}\''.format(tokens_file))
+		print(
+			'=> Unable to open file: "{tokens_file}"'.format(
+				tokens_file=tokens_file,
+			)
+		)
 	else:
 		fp.close()
-		print("=> read {0} access tokens".format(idx))
-		return tokens
 
-def process_access_token(worksheet, access_token) :
+	return tokens
+
+def _process_athlete(worksheet, access_token) -> float:
 	global row, col
 	client = Client(access_token=access_token)
 	athlete = client.get_athlete()
 	print(
-		'processing athlete: {lastname}, {firstname}'.format(
+		'Processing athlete: "{lastname}, {firstname}" ...'.format(
 			lastname=athlete.lastname,
 			firstname=athlete.firstname,
 		)
 	)
-	sys.stdout.flush()
-	total_distance = 0
-	for activity in client.get_activities():
+
+	total_distance_kilometers = float(0)
+	for idx, activity in enumerate(client.get_activities()):
+		if idx % 20 == 0:
+			sys.stdout.write('{}\r'.format(next(spinner)))
+			sys.stdout.flush()
+			time.sleep(0.1)
+
 		workbook.add_format({'num_format': 'dd/mm/yy'})
+
 		worksheet.write(row, col, activity.id)
-		worksheet.write(row, col+1, athlete.lastname + ', ' + athlete.firstname)
+		worksheet.write(row, col+1, util.athlete_fullname(athlete.firstname, athlete.lastname))
 		worksheet.write(row, col+2, activity.name)
 		worksheet.write(row, col+3, activity.achievement_count)
 		worksheet.write(row, col+4, activity.start_date.replace(tzinfo=None))
-		worksheet.write(row, col+5, activity.type)
-		worksheet.write(row, col+6, activity.distance)
-		worksheet.write(row, col+7, activity.moving_time.total_seconds())
-		worksheet.write(row, col+8, activity.average_speed)
-		worksheet.write(row, col+9, activity.max_speed)
-		worksheet.write(row, col+10, activity.total_elevation_gain)
-		worksheet.write(row, col+11, activity.distance)
-		worksheet.write(row, col+12, activity.distance)
+		worksheet.write(row, col+5, activity.type.upper())
+		activity_distance_kilometers = float(unithelper.kilometers(activity.distance))
+		worksheet.write(row, col+6, round(activity_distance_kilometers, util.DEFAULT_DECIMAL_PLACES))
+		worksheet.write(row, col+7, activity.moving_time.seconds)
+		activity_average_speed_meters_per_second = float(unithelper.meters_per_second(activity.average_speed))
+		worksheet.write(row, col+8, round(activity_average_speed_meters_per_second, util.DEFAULT_DECIMAL_PLACES))
+		activity_max_speed_meters_per_second = float(unithelper.meters_per_second(activity.max_speed))
+		worksheet.write(row, col+9, round(activity_max_speed_meters_per_second, util.DEFAULT_DECIMAL_PLACES))
+		activity_total_elevation_gain_meters = float(unithelper.meters(activity.total_elevation_gain))
+		worksheet.write(row, col+10, round(activity_total_elevation_gain_meters, util.DEFAULT_DECIMAL_PLACES))
+
 		row += 1
 		col = 0
-		total_distance += int(activity.distance)
-	return total_distance
+		total_distance_kilometers += activity_distance_kilometers
+
+	return total_distance_kilometers
+
+spinner = util.spinning_cursor()
 
 # read all access tokens
 tokens = []
-tokens = read_access_tokens('tokens')
+tokens = _read_access_tokens('tokens')
+print(
+	'\n=> Read {token_count} access tokens\n'.format(
+		token_count=len(tokens),
+	)
+)
 
 # xlsx file is timestamped now
 now = datetime.datetime.now()
@@ -73,41 +102,54 @@ col=0
 
 worksheet.write(row, col, 'ID', bold)
 worksheet.write(row, col+1, 'Name', bold)
-worksheet.write(row, col+2, 'Achievement count', bold)
-worksheet.write(row, col+3, 'Date', bold)
-worksheet.write(row, col+4, 'Type', bold)
-worksheet.write(row, col+5, 'Distance (m)', bold)
-worksheet.write(row, col+6, 'Moving Time (s)', bold)
-worksheet.write(row, col+7, 'Average Speed (m/s)', bold)
-worksheet.write(row, col+8, 'Max Speed (m/s)', bold)
-worksheet.write(row, col+9, 'Total Elevation Gain (m)', bold)
+worksheet.write(row, col+2, 'Activity', bold)
+worksheet.write(row, col+3, 'Achievement Count', bold)
+worksheet.write(row, col+4, 'Date', bold)
+worksheet.write(row, col+5, 'Type', bold)
+worksheet.write(row, col+6, 'Distance (km)', bold)
+worksheet.write(row, col+7, 'Moving Time (s)', bold)
+worksheet.write(row, col+8, 'Average Speed (m/s)', bold)
+worksheet.write(row, col+9, 'Max Speed (m/s)', bold)
+worksheet.write(row, col+10, 'Total Elevation Gain (m)', bold)
 
-worksheet.set_column('A:A', 10)
-worksheet.set_column('B:B', 26)
-worksheet.set_column('C:C', 10)
-worksheet.set_column('D:D', 9)
-worksheet.set_column('E:E', 8)
-worksheet.set_column('F:F', 12)
-worksheet.set_column('G:G', 13)
-worksheet.set_column('H:H', 17)
-worksheet.set_column('I:I', 14)
-worksheet.set_column('J:J', 19)
+worksheet.set_column('A:A', 12)
+worksheet.set_column('B:B', 20)
+worksheet.set_column('C:C', 20)
+worksheet.set_column('D:D', 20)
+worksheet.set_column('E:E', 10)
+worksheet.set_column('F:F', 14)
+worksheet.set_column('G:G', 16)
+worksheet.set_column('H:H', 18)
+worksheet.set_column('I:I', 24)
+worksheet.set_column('J:J', 20)
+worksheet.set_column('K:K', 24)
 
 row += 1
 
-# get activities for the club
-activities=[]
-total_distance = 0
+cursor.hide()
 
-sys.stdout.flush()
-
+# get activities for all athletes
+total_distance_kilometers = float(0)
 for idx, token in enumerate(tokens):
-	total_dist = process_access_token(worksheet, token)
-	total_distance += total_dist
-	print('total distance = {0}'.format(total_dist))
+	athlete_total_distance_kilometers = _process_athlete(worksheet, token)
+	print(
+		'=> Athlete total distance is {athlete_total_distance_kilometers} km'.format(
+			athlete_total_distance_kilometers=round(athlete_total_distance_kilometers, util.DEFAULT_DECIMAL_PLACES),
+		)
+	)
+	total_distance_kilometers += athlete_total_distance_kilometers
 
-print('total total total distance = {0}'.format(total_distance))
+print(
+	'\n=> Total distance is {total_distance_kilometers} km'.format(
+		total_distance_kilometers=round(total_distance_kilometers, util.DEFAULT_DECIMAL_PLACES),
+	)
+)
+
+cursor.show()
 
 workbook.close()
-
-print('\nwrote \'{0}\''.format(filename))
+print(
+	'\n=> Wrote "{filename}"\n'.format(
+		filename=filename,
+	)
+)

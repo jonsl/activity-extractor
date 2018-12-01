@@ -1,10 +1,21 @@
 # activity-extractor
 
-## prerequisites
+## requirements
 
-1. download and install python >= 3.6.4 from https://www.python.org/downloads/
+```bash
+source venv3/bin/activate  # linux / osx
+pip3 uninstall --yes -r requirements.txt
+pip3 install -r requirements.txt
+```
 
-2. $ pip install stravalib
+## usage
 
-3. $ pip install xlsxwriter
+```bash
+python3 club_extractor.py
+```
 
+* or
+
+```bash
+python3 activity_extractor.py
+```
